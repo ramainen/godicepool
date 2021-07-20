@@ -9,76 +9,27 @@ import (
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	fmt.Println(D6())
-	result := MakeAttacksRolls(10000, 3, 6)
+	result := RollDicePool(10000, 3, 6)
 	fmt.Println(result.CritsCount)
 	fmt.Println(result.NonCritsCount)
 	fmt.Println(result.Rolls)
-}
 
-func D6() int {
-	return rand.Intn(6) + 1
-}
+	body1 := NewBody()
+	body1.Defence = 4
+	body1.Wounds = 7
+	body1.FNP = 5
+	body1.Save = 5
 
-type DicePoolResult struct {
-	Rolls         [7]int
-	CritsCount    int
-	NonCritsCount int
+	weapon1 := NewWeapon()
+	weapon1.BS = 3
+	weapon1.Attacks = 4
+	weapon1.MW = 3
+	weapon1.NormalDamage = 2
+	weapon1.CriticalDamage = 3
 
-	//FailedCount   int
-	//SixesCount    int
-	//OnesCount     int
-}
+	attackSeriesResult := MakeAttackSeries(1000, weapon1, body1, 2)
+	fmt.Println(attackSeriesResult)
 
-type Weapon struct {
-	Attacks int
-	BS      int
-	Lethal  int
-	AP      int
-	MW      int
-	Rules   struct {
-		Sniper bool
-		Magic  bool
-		Etc    bool
-	}
-}
+	//fmt.Println(MakeAttackRound(weapon1, body1, 2))
 
-func NewWeapon() Weapon {
-	weapon := Weapon{}
-	weapon.Lethal = 6
-	weapon.AP = 0
-	weapon.MW = 0
-	return weapon
-}
-
-type Body struct {
-	Wounds  int
-	Defence int
-	Save    int
-	FNP     int
-	Rules   struct {
-		AllIsDust bool
-		Xenos     bool
-		Etc       bool
-	}
-}
-
-func NewBody() Body {
-	body := Body{}
-	body.FNP = 0
-	return body
-}
-
-//MakeAttacksRolls returns array of rolled dices, with marks about how many krits and not krits rolls
-func MakeAttacksRolls(count int, bs int, critValue int) DicePoolResult {
-	result := DicePoolResult{}
-	for i := 1; i <= count; i++ {
-		rollResult := D6()
-		result.Rolls[rollResult]++
-		if rollResult >= critValue {
-			result.CritsCount++
-		} else if rollResult >= bs {
-			result.NonCritsCount++
-		}
-	}
-	return result
 }
