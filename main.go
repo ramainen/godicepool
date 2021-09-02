@@ -9,8 +9,8 @@ import (
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	fmt.Println(D6())
-	result := RollDicePool(10000, 3, 6)
+
+	result := RollDicePool(10000, 3, 6, 0)
 	fmt.Println(result.CritsCount)
 	fmt.Println(result.NonCritsCount)
 	fmt.Println(result.Rolls)
@@ -77,6 +77,34 @@ func WASMMakeAttackSeries() js.Func {
 			weapon1.MW = MWValue.Int()
 		}
 
+		BrutalValue := args[0].Get("brutal")
+		if !BrutalValue.IsUndefined() && !BrutalValue.IsNull() {
+			weapon1.Brutal = BrutalValue.Int()
+		}
+
+		LethalValue := args[0].Get("lethal")
+		if !LethalValue.IsUndefined() && !LethalValue.IsNull() {
+			weapon1.Lethal = LethalValue.Int()
+			if weapon1.Lethal == 0 {
+				weapon1.Lethal = 6
+			}
+		}
+
+		PValue := args[0].Get("p")
+		if !PValue.IsUndefined() && !PValue.IsNull() {
+			weapon1.P = PValue.Int()
+		}
+
+		RerollValue := args[0].Get("reroll")
+		if !RerollValue.IsUndefined() && !RerollValue.IsNull() {
+			weapon1.Reroll = RerollValue.Int()
+		}
+
+		RendingValue := args[0].Get("rending")
+		if !RendingValue.IsUndefined() && !RendingValue.IsNull() {
+			weapon1.Rending = RendingValue.Int()
+		}
+
 		fmt.Println(weapon1)
 		body1 := NewBody()
 		body1.Defence = 9
@@ -95,6 +123,10 @@ func WASMMakeAttackSeries() js.Func {
 		SaveValue := args[1].Get("save")
 		if !SaveValue.IsUndefined() && !SaveValue.IsNull() {
 			body1.Save = SaveValue.Int()
+		}
+		InvulnerableSaveValue := args[1].Get("invulnerable_save")
+		if !InvulnerableSaveValue.IsUndefined() && !InvulnerableSaveValue.IsNull() {
+			body1.InvulnerableSave = InvulnerableSaveValue.Int()
 		}
 		FNPValue := args[1].Get("fnp")
 		if !FNPValue.IsUndefined() && !FNPValue.IsNull() {

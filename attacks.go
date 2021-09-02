@@ -28,13 +28,37 @@ func MakeAttack(weapon Weapon, body Body) (AttackResult, Body) {
 	bs := weapon.BS
 	attacks := weapon.Attacks
 	critvalue := weapon.Lethal
-	attackRolls := RollDicePool(attacks, bs, critvalue)
+
+	attackRolls := RollDicePool(attacks, bs, critvalue, weapon.Reroll)
 	attackCritCount := attackRolls.CritsCount
 	attackSuccessCount := attackRolls.NonCritsCount
 
 	defence := body.Defence
+
+	if weapon.P > 0 {
+		if attackCritCount > 0 {
+			weapon.AP = weapon.P
+		}
+	}
+
+	if weapon.Rending > 0 {
+		if attackCritCount > 0 {
+			attackCritCount = attackCritCount + attackSuccessCount
+			attackSuccessCount = 0
+		}
+	}
+	//deal with AP
+	if weapon.AP > 0 {
+		defence = defence - weapon.AP
+	}
+	//InvulnerableSave. Scenario: opponent has APs and invul better than usual saves. Behind this all depends to end user
+
 	saveroll := body.Save
-	saveRolls := RollDicePool(defence, saveroll, 6)
+	if weapon.AP > 0 && body.InvulnerableSave > 0 && body.InvulnerableSave < body.Save {
+		saveroll = body.InvulnerableSave
+	}
+
+	saveRolls := RollDicePool(defence, saveroll, 6, REROLL_NONE)
 	defenceCritCount := saveRolls.CritsCount
 	defenceSuccessCount := saveRolls.NonCritsCount
 
@@ -65,11 +89,17 @@ func MakeAttack(weapon Weapon, body Body) (AttackResult, Body) {
 			defenceCritCount = defenceCritCount - attackCritCount
 		}
 	}
-	//Deal with attack crit rolls with pairs of defence rolls
-	if attackCritCount > 0 {
-		if defenceSuccessCount*2 <= attackCritCount*2 {
-			attackCritCount = attackCritCount - defenceSuccessCount*2
-			defenceSuccessCount = 0
+	//Deal with attack crit rolls with pairs of defence rolls; Brutal do not allow this
+	if attackCritCount > 0 && weapon.Brutal == 0 {
+		if defenceSuccessCount <= attackCritCount*2 {
+			//for example, defence success = 3, crits = 2, 3 <= 2*2, so...
+			//..crits = 1, because only one is blocked
+
+			resolvedCritAttacks := (int)(defenceSuccessCount / 2)
+			attackCritCount = attackCritCount - resolvedCritAttacks
+
+			//for another example, defence success = 3, crits = 99, 3 <= 99*2, so...
+			defenceSuccessCount = defenceSuccessCount - resolvedCritAttacks*2
 		} else {
 			//attacks crits count is less than pairs of defence successes, for example 2 attack crits and 5 success defences, 1 remaining
 			attackCritCount = 0
@@ -89,8 +119,8 @@ func MakeAttack(weapon Weapon, body Body) (AttackResult, Body) {
 			attackSuccessCount = 0
 		}
 	}
-	//Deal with usual defence rolls
-	if attackSuccessCount > 0 {
+	//Deal with usual defence rolls; Brutal down not allow this
+	if attackSuccessCount > 0 && weapon.Brutal == 0 {
 		if defenceSuccessCount <= attackSuccessCount {
 			attackSuccessCount = attackSuccessCount - defenceSuccessCount
 			defenceCritCount = 0
