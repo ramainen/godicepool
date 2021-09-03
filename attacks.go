@@ -66,17 +66,19 @@ func MakeAttack(weapon Weapon, body Body) (AttackResult, Body) {
 	if weapon.MW > 0 && attackCritCount > 0 {
 		if body.FNP > 0 {
 			successFNP = XD6plus(weapon.MW*attackCritCount, body.FNP)
-
-			if successFNP < weapon.MW*attackCritCount {
-				body.Wounds = body.Wounds - (weapon.MW*attackCritCount - successFNP)
-			}
-			if body.Wounds <= 0 {
-				body.Wounds = 0
-				result.AffectedWounds = originalWounds
-				result.Killed = true
-				return result, body
-			}
 		}
+
+		if successFNP < weapon.MW*attackCritCount {
+			body.Wounds = body.Wounds - (weapon.MW*attackCritCount - successFNP)
+			successFNP = 0
+		}
+		if body.Wounds <= 0 {
+			body.Wounds = 0
+			result.AffectedWounds = originalWounds
+			result.Killed = true
+			return result, body
+		}
+
 	}
 
 	//Deal with crit and non crit rolls
@@ -136,6 +138,7 @@ func MakeAttack(weapon Weapon, body Body) (AttackResult, Body) {
 	if body.FNP > 0 {
 		successFNP = XD6plus(weapon.CriticalDamage*attackCritCount, body.FNP)
 	}
+	//FXIME!!!
 	if successFNP < weapon.CriticalDamage*attackCritCount {
 		body.Wounds = body.Wounds - (weapon.CriticalDamage*attackCritCount - successFNP)
 	}
@@ -145,6 +148,7 @@ func MakeAttack(weapon Weapon, body Body) (AttackResult, Body) {
 		result.Killed = true
 		return result, body
 	}
+	//FXIME!!!
 	if body.FNP > 0 {
 		successFNP = XD6plus(weapon.NormalDamage*attackSuccessCount, body.FNP)
 	}
