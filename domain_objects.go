@@ -65,12 +65,16 @@ type Body struct {
 	Save             int
 	InvulnerableSave int
 	FNP              int
+	InCover          int
+	Reroll           int
 }
 
 func NewBody() Body {
 	body := Body{}
 	body.FNP = 0
 	body.InvulnerableSave = 0
+	body.InCover = 0
+	body.Reroll = 0
 	return body
 }
 

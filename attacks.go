@@ -47,21 +47,31 @@ func MakeAttack(weapon Weapon, body Body) (AttackResult, Body) {
 			attackSuccessCount = 0
 		}
 	}
+
+	//InvulnerableSave. Scenario: opponent has APs and invul better than usual saves. Behind this all depends to end user
+
+	saveroll := body.Save
+	if weapon.AP > 0 && body.InvulnerableSave > 0 {
+		saveroll = body.InvulnerableSave
+		weapon.AP = 0
+	}
+
 	//deal with AP
 	if weapon.AP > 0 {
 		defence = defence - weapon.AP
 	}
-	//InvulnerableSave. Scenario: opponent has APs and invul better than usual saves. Behind this all depends to end user
 
-	saveroll := body.Save
-	if weapon.AP > 0 && body.InvulnerableSave > 0 && body.InvulnerableSave < body.Save {
-		saveroll = body.InvulnerableSave
+	if body.InCover == 1 && defence > 0 {
+		defence = defence - 1
 	}
 
-	saveRolls := RollDicePool(defence, saveroll, 6, REROLL_NONE)
+	saveRolls := RollDicePool(defence, saveroll, 6, body.Reroll)
 	defenceCritCount := saveRolls.CritsCount
 	defenceSuccessCount := saveRolls.NonCritsCount
 
+	if body.InCover == 1 && defence > 0 {
+		defenceSuccessCount++
+	}
 	//Mortal wounds works now, BEFORE chance to prevent them
 	if weapon.MW > 0 && attackCritCount > 0 {
 		if body.FNP > 0 {
